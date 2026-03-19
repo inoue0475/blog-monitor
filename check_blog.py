@@ -1,31 +1,36 @@
 import requests
-from bs4 import BeautifulSoup
 import hashlib
 import os
 
+# 監視対象ブログURL
 URL = "http://radioactivewaste.seesaa.net/"
+
+# Discordテスト用Webhook
 WEBHOOK = "https://discord.com/api/webhooks/1484212069439111458/K3bVjxTyTq18Bo1IH3MpzQ9WhuFEqYnSX-Toka2t3BMhxNnZlmFxHli-r0YACj038UtA"
+
+# ハッシュ保存ファイル
 STATE_FILE = "hash.txt"
 
+# HTML全体のMD5ハッシュ取得
 def get_hash():
-    html = requests.get(URL).text
-    soup = BeautifulSoup(html, "html.parser")
-    # 記事本文だけ抽出（class名はブログに合わせて要変更）
-    article = soup.find("div", class_="articleBody").get_text()
-    return hashlib.md5(article.encode()).hexdigest()
+    html = requests.get(URL, timeout=10).text
+    return hashlib.md5(html.encode()).hexdigest()
 
+# 前回ハッシュ読み込み
 def load_old():
     if os.path.exists(STATE_FILE):
         return open(STATE_FILE).read().strip()
     return None
 
+# ハッシュ保存
 def save(h):
     open(STATE_FILE, "w").write(h)
 
+# Discord通知
 def notify():
     requests.post(
         WEBHOOK,
-        json={"content": "🆕 ブログ更新検知"}
+        json={"content": "🆕 ブログ更新検知！ http://radioactivewaste.seesaa.net/"}
     )
 
 if __name__ == "__main__":

@@ -1,8 +1,8 @@
 import requests
 
-WEBHOOK = "https://discord.com/api/webhooks/1484205183914348695/DWELElPDGIe8k2hkUmwUZ6TDo7OVSRe2iF85HRqhZ0MeN86gPqz8NEbZRUT8NQFfN5Ny"
+WEBHOOK = "https://discord.com/api/webhooks/1484210034840830043/o07phlzYEK3LoiRQkg_dp3eJTvRJLZnWJdF05TVeyNImpmYgBFFXdBk_MIQE8U3PBlro"
 
 requests.post(
     WEBHOOK,
-    json={"content": "🔥 ブログテスト通知"}
+    json={"content": "🔥 テスト通知（blog側）"}
 )

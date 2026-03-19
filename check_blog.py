@@ -1,15 +1,18 @@
 import requests
+from bs4 import BeautifulSoup
 import hashlib
 import os
 
 URL = "http://radioactivewaste.seesaa.net/"
 WEBHOOK = "https://discord.com/api/webhooks/1484212069439111458/K3bVjxTyTq18Bo1IH3MpzQ9WhuFEqYnSX-Toka2t3BMhxNnZlmFxHli-r0YACj038UtA"
-
 STATE_FILE = "hash.txt"
 
 def get_hash():
     html = requests.get(URL).text
-    return hashlib.md5(html.encode()).hexdigest()
+    soup = BeautifulSoup(html, "html.parser")
+    # 記事本文だけ抽出（class名はブログに合わせて要変更）
+    article = soup.find("div", class_="articleBody").get_text()
+    return hashlib.md5(article.encode()).hexdigest()
 
 def load_old():
     if os.path.exists(STATE_FILE):

@@ -3,24 +3,24 @@ import requests
 import hashlib
 import os
 
-# 取得するブログのURL
-BLOG_URL = "http://radioactivewaste.seesaa.net/"  # ← 実際のURLに置き換えてください
+# --- ここをあなたのブログURLに変更 ---
+BLOG_URL = "https://radioactivewaste.seesaa.net/"
 
-# Discord Webhook URL
-DISCORD_WEBHOOK_URL = os.environ.get("https://discord.com/api/webhooks/1484212069439111458/K3bVjxTyTq18Bo1IH3MpzQ9WhuFEqYnSX-Toka2t3BMhxNnZlmFxHli-r0YACj038UtA")
+# --- Discord Webhook URL（直接書き）---
+WEBHOOK = "https://discord.com/api/webhooks/1484212069439111458/K3bVjxTyTq18Bo1IH3MpzQ9WhuFEqYnSX-Toka2t3BMhxNnZlmFxHli-r0YACj038UtA"
 
-# ハッシュ保存ファイル
-HASH_FILE = "last_hash.txt"
+# 保存するハッシュファイル名
+CACHE_FILE = "cache_hash.txt"
 
-def get_blog_html(url):
-    """ブログページのHTMLを取得"""
-    response = requests.get(url)
-    response.raise_for_status()
-    return response.text
+def fetch_html(url):
+    """ブログのHTMLを取得"""
+    res = requests.get(url, timeout=10)
+    res.raise_for_status()
+    return res.text
 
-def compute_hash(content):
-    """文字列のSHA256ハッシュを返す"""
-    return hashlib.sha256(content.encode("utf-8")).hexdigest()
+def compute_hash(text):
+    """SHA-256でハッシュ計算"""
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 def read_last_hash(file_path):
     if os.path.exists(file_path):
@@ -28,37 +28,32 @@ def read_last_hash(file_path):
             return f.read().strip()
     return None
 
-def save_hash(file_path, hash_value):
+def save_hash(file_path, hash_val):
     with open(file_path, "w") as f:
-        f.write(hash_value)
+        f.write(hash_val)
 
-def send_discord_notification(webhook_url, message):
-    """Discordに通知"""
-    if not webhook_url:
-        print("Discord Webhook URL が設定されていません")
-        return
-    payload = {"content": message}
-    try:
-        r = requests.post(webhook_url, json=payload)
-        r.raise_for_status()
-        print("通知送信成功")
-    except Exception as e:
-        print(f"通知送信失敗: {e}")
+def send_discord(msg):
+    """WebhookでDiscordに通知"""
+    data = {"content": msg}
+    requests.post(WEBHOOK, json=data)
 
 def main():
-    try:
-        html = get_blog_html(BLOG_URL)
-    except Exception as e:
-        print(f"ブログ取得失敗: {e}")
+    html = fetch_html(BLOG_URL)
+    current_hash = compute_hash(html)
+
+    old_hash = read_last_hash(CACHE_FILE)
+    if old_hash is None:
+        # 初回実行 → 保存のみ
+        print("初回実行: ハッシュ保存")
+        save_hash(CACHE_FILE, current_hash)
         return
 
-    current_hash = compute_hash(html)
-    last_hash = read_last_hash(HASH_FILE)
-
-    if last_hash != current_hash:
-        print("ブログが更新されました")
-        send_discord_notification(DISCORD_WEBHOOK_URL, f"ブログが更新されました: {BLOG_URL}")
-        save_hash(HASH_FILE, current_hash)
+    if current_hash != old_hash:
+        print("更新を検知！")
+        # Discord送信
+        send_discord(f"🆕 ブログ更新を検知しました！\n{BLOG_URL}")
+        # ハッシュ更新
+        save_hash(CACHE_FILE, current_hash)
     else:
         print("更新なし")
 

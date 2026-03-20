@@ -4,7 +4,7 @@ import os
 # HTML ファイルのパス
 LOCAL_FILE = "last_html.html"
 # チェック対象のページ（テスト用HTML）
-URL = "https://raw.githubusercontent.com/<ユーザー名>/<リポジトリ名>/main/test_page.html"
+URL = "https://github.com/inoue0475/blog-monitor/blob/main/test_page.html"
 # Discord Webhook URL
 WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 
